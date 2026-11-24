@@ -17,8 +17,12 @@ However, identifying high-risk individuals is challenging because:
 4. python app.py and open http://127.0.0.1:5000
 ```
 #Deployment
+```bash
 gunicorn app:app --bind 0.0.0.0:8000
 Commit model/ so the server never retrains. Rerun train.py only when the data changes.
+```
 
 #Notes
+```bash
 The dataset is synthetic. District, Year, and Month are excluded from the model. Scores are uncalibrated.
+```
