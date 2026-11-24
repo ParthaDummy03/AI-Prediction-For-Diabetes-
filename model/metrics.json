@@ -1,0 +1,148 @@
+{
+  "rows": 5376,
+  "duplicates": 0,
+  "invalid_set_to_missing": {
+    "Glucose": 0,
+    "BloodPressure": 0,
+    "SkinThickness": 0,
+    "Insulin": 0,
+    "BMI": 0
+  },
+  "class_balance": {
+    "negative": 5174,
+    "positive": 202,
+    "positive_percent": 3.76
+  },
+  "missing": [
+    {
+      "feature": "Age",
+      "count": 57,
+      "percent": 1.1
+    },
+    {
+      "feature": "Glucose",
+      "count": 207,
+      "percent": 3.9
+    },
+    {
+      "feature": "BloodPressure",
+      "count": 251,
+      "percent": 4.7
+    },
+    {
+      "feature": "SkinThickness",
+      "count": 987,
+      "percent": 18.4
+    },
+    {
+      "feature": "Insulin",
+      "count": 1213,
+      "percent": 22.6
+    },
+    {
+      "feature": "BMI",
+      "count": 217,
+      "percent": 4.0
+    },
+    {
+      "feature": "DiabetesPedigreeFunction",
+      "count": 158,
+      "percent": 2.9
+    }
+  ],
+  "imputer_cv_roc_auc": {
+    "mean": 0.648,
+    "median": 0.6482,
+    "knn": 0.6459
+  },
+  "chosen_imputer": "median",
+  "models": {
+    "Logistic Regression": {
+      "accuracy": 0.6292,
+      "precision": 0.059,
+      "recall": 0.6,
+      "f1": 0.1074,
+      "roc_auc": 0.6774,
+      "confusion": [
+        [
+          653,
+          383
+        ],
+        [
+          16,
+          24
+        ]
+      ]
+    },
+    "Random Forest": {
+      "accuracy": 0.9628,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.5807,
+      "confusion": [
+        [
+          1036,
+          0
+        ],
+        [
+          40,
+          0
+        ]
+      ]
+    },
+    "Decision Tree": {
+      "accuracy": 0.7314,
+      "precision": 0.0569,
+      "recall": 0.4,
+      "f1": 0.0997,
+      "roc_auc": 0.598,
+      "confusion": [
+        [
+          771,
+          265
+        ],
+        [
+          24,
+          16
+        ]
+      ]
+    }
+  },
+  "best_model": "Logistic Regression",
+  "importance": [
+    {
+      "feature": "Glucose",
+      "value": 0.1996
+    },
+    {
+      "feature": "DiabetesPedigreeFunction",
+      "value": 0.1541
+    },
+    {
+      "feature": "BMI",
+      "value": 0.1515
+    },
+    {
+      "feature": "Insulin",
+      "value": 0.1276
+    },
+    {
+      "feature": "Age",
+      "value": 0.1222
+    },
+    {
+      "feature": "SkinThickness",
+      "value": 0.1133
+    },
+    {
+      "feature": "BloodPressure",
+      "value": 0.1129
+    },
+    {
+      "feature": "Female",
+      "value": 0.0188
+    }
+  ],
+  "test_size": 1076
+}

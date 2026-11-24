@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diabetes risk check for Bangladesh</title>
+<meta name="description" content="Enter a few health measurements and get a diabetes risk score with the factors behind it. A screening aid trained on a synthetic Bangladesh dataset.">
+<meta property="og:title" content="Diabetes risk check for Bangladesh">
+<meta property="og:description" content="A risk score from a few health measurements, with the factors that drove it.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2310b981'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%23090d16'/%3E%3Cpath d='M16 6c4 5 7 8.5 7 12a7 7 0 0 1-14 0c0-3.5 3-7 7-12z' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --s25: 2px; --s50: 4px; --s75: 8px; --s100: 12px; --s200: 16px;
+  --s300: 24px; --s400: 32px; --s500: 40px; --s600: 48px; --s700: 64px;
+  --s800: 80px; --s900: 96px;
+  --curve: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Brand Gradients */
+  --grad-primary: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+  --grad-primary-hover: linear-gradient(135deg, #059669 0%, #0891b2 50%, #2563eb 100%);
+  --grad-bar: linear-gradient(90deg, #10b981 0%, #06b6d4 60%, #6366f1 100%);
+  --grad-warn: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+}
+
+[data-theme="dark"] {
+  --bg: #080c14;
+  --bg-ambient: radial-gradient(circle at 20% 0%, rgba(16, 185, 129, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 80% 10%, rgba(59, 130, 246, 0.14) 0%, transparent 45%);
+  --card: linear-gradient(160deg, rgba(22, 31, 48, 0.85) 0%, rgba(15, 22, 36, 0.92) 100%);
+  --nav-bg: rgba(11, 17, 29, 0.78);
+  --field: rgba(30, 41, 59, 0.75);
+  --line: rgba(148, 163, 184, 0.16);
+  --line-hover: rgba(56, 189, 248, 0.4);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --hero-grad: linear-gradient(135deg, #ffffff 15%, #6ee7b7 55%, #60a5fa 95%);
+  --shadow-card: 0 20px 40px -15px rgba(0, 0, 0, 0.55);
+  --err-bg: rgba(239, 68, 68, 0.14);
+  --err-border: #f87171;
+  --err-text: #fecaca;
+}
+
+[data-theme="light"] {
+  --bg: #f4f7fb;
+  --bg-ambient: radial-gradient(circle at 18% 0%, rgba(16, 185, 129, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 82% 8%, rgba(59, 130, 246, 0.12) 0%, transparent 45%);
+  --card: linear-gradient(160deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.96) 100%);
+  --nav-bg: rgba(255, 255, 255, 0.82);
+  --field: #f1f5f9;
+  --line: rgba(15, 23, 42, 0.1);
+  --line-hover: rgba(14, 165, 233, 0.45);
+  --text: #0f172a;
+  --muted: #475569;
+  --hero-grad: linear-gradient(135deg, #0f172a 15%, #059669 58%, #2563eb 95%);
+  --shadow-card: 0 18px 36px -14px rgba(15, 23, 42, 0.08);
+  --err-bg: rgba(239, 68, 68, 0.08);
+  --err-border: #dc2626;
+  --err-text: #b91c1c;
+}
+
+* { box-sizing: border-box; margin: 0; font-style: normal; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--s800); }
+body {
+  background-color: var(--bg);
+  background-image: var(--bg-ambient);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Geist', 'Hind Siliguri', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  transition: background-color 350ms var(--curve), color 350ms var(--curve);
+}
+html[lang="bn"] body {
+  font-family: 'Hind Siliguri', 'Geist', system-ui, sans-serif;
+  line-height: 26px;
+}
+
+.heading-1 { font-size: 56px; line-height: 1.12; font-weight: 700; letter-spacing: -0.02em; }
+.heading-3 { font-size: 34px; line-height: 1.22; font-weight: 600; letter-spacing: -0.015em; }
+.heading-5 { font-size: 24px; line-height: 32px; font-weight: 600; }
+.title-3 { font-size: 16px; line-height: 24px; font-weight: 600; }
+.title-4 { font-size: 14px; line-height: 20px; font-weight: 500; }
+.body-3 { font-size: 16px; line-height: 25px; font-weight: 400; text-wrap: pretty; }
+.body-6 { font-size: 14px; line-height: 21px; font-weight: 400; text-wrap: pretty; }
+.button-md { font-size: 15px; line-height: 24px; font-weight: 600; }
+.caption-4 { font-size: 12px; line-height: 17px; font-weight: 500; }
+.muted { color: var(--muted); }
+h1, h2, h3 { text-wrap: balance; }
+.mono { font-family: 'Geist Mono', monospace; font-weight: 500; }
+
+.skip {
+  position: absolute; left: var(--s200); top: -96px;
+  background: var(--grad-primary); color: #fff;
+  padding: var(--s75) var(--s100); border-radius: 8px; z-index: 20;
+}
+.skip:focus { top: var(--s200); }
+
+/* Floating Glass Navbar with Controls */
+nav {
+  position: fixed; top: var(--s200); left: 50%; transform: translateX(-50%);
+  z-index: 10; display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s100); padding: 6px 10px;
+  background: var(--nav-bg); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--line); border-radius: 999px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.35);
+  max-width: calc(100% - 24px);
+}
+.nav-links { display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.nav-links::-webkit-scrollbar { display: none; }
+nav a {
+  color: var(--muted); text-decoration: none; padding: 6px 12px;
+  border-radius: 999px; white-space: nowrap;
+  transition: background-color 250ms var(--curve), color 250ms var(--curve);
+}
+nav a:hover { color: var(--text); background: var(--field); }
+nav a[aria-current=true] {
+  background: var(--grad-primary); color: #ffffff; font-weight: 500;
+}
+
+.nav-controls {
+  display: flex; align-items: center; gap: 6px;
+  padding-left: 8px; border-left: 1px solid var(--line); flex-shrink: 0;
+}
+.pill-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  background: var(--field); color: var(--text);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 5px 11px; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: border-color 250ms var(--curve), transform 200ms var(--curve), background 250ms var(--curve);
+}
+.pill-btn:hover { border-color: var(--line-hover); }
+.pill-btn:active { transform: scale(0.96); }
+.icon-btn { width: 32px; height: 32px; padding: 0; }
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
+  outline: 2px solid #10b981; outline-offset: 2px;
+}
+
+section { padding: var(--s800) var(--s200); display: flex; flex-direction: column; align-items: center; }
+.wrap { width: 100%; max-width: 980px; }
+
+.hero { padding-top: 112px; min-height: 94vh; justify-content: center; text-align: center; position: relative; }
+.badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 999px; margin-bottom: var(--s200);
+  background: var(--field); border: 1px solid var(--line);
+  font-size: 13px; font-weight: 500; color: var(--muted);
+}
+.badge-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--grad-primary); box-shadow: 0 0 10px #10b981;
+}
+.hero h1 {
+  max-width: 740px;
+  background: var(--hero-grad);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  margin-bottom: var(--s200);
+}
+.hero p.lead { max-width: 660px; color: var(--muted); margin: 0 auto var(--s400); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--grad-primary); color: #ffffff; border: 0;
+  padding: 11px 22px; border-radius: 12px; text-decoration: none;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 10px 25px -8px rgba(16, 185, 129, 0.5);
+  transition: transform 300ms var(--curve), box-shadow 300ms var(--curve), filter 300ms var(--curve);
+}
+.btn:hover { filter: brightness(1.08); box-shadow: 0 14px 30px -8px rgba(6, 182, 212, 0.6); transform: translateY(-1px); }
+.btn:active { transform: scale(0.98); }
+
+.proof { margin-top: var(--s300); }
+.tagline { padding: var(--s700) var(--s200); }
+.tagline p { max-width: 720px; text-align: center; }
+.tagline .w { opacity: 0.28; transition: opacity 500ms var(--curve); }
+.tagline .w.on { opacity: 1; }
+
+h2 { margin-bottom: var(--s100); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s300); margin-top: var(--s400); }
+
+.card {
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: var(--s300);
+  box-shadow: var(--shadow-card);
+  transition: border-color 300ms var(--curve), transform 300ms var(--curve);
+}
+.card:hover { border-color: var(--line-hover); }
+
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s100); }
+label { display: flex; flex-direction: column; gap: 6px; }
+input, select {
+  background: var(--field); color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; font: inherit; width: 100%;
+  transition: border-color 200ms var(--curve), box-shadow 200ms var(--curve);
+}
+input:focus, select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+  outline: none;
+}
+
+.form-actions { margin-top: var(--s200); display: flex; gap: var(--s100); align-items: center; flex-wrap: wrap; }
+.err {
+  color: var(--err-text); background: var(--err-bg);
+  border: 1px solid var(--err-border); border-radius: 10px;
+  padding: var(--s75) var(--s100); margin-top: var(--s200);
+}
+
+.track { background: var(--line); height: 9px; border-radius: 999px; overflow: hidden; }
+.fill {
+  background: var(--grad-bar); height: 100%; border-radius: 999px;
+  transform-origin: left; transition: transform 550ms var(--curve);
+}
+.fill.high-risk { background: var(--grad-warn); }
+
+.row { display: grid; grid-template-columns: 136px 1fr 56px; gap: var(--s100); align-items: center; margin-top: 10px; }
+.skel {
+  background: linear-gradient(90deg, var(--field) 25%, var(--line) 50%, var(--field) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 10px; height: 26px; margin-top: var(--s100);
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
+
+.filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s100); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s100); margin-top: var(--s200); }
+.stat {
+  background: var(--field); border: 1px solid var(--line);
+  border-radius: 14px; padding: 14px;
+}
+
+details { border-bottom: 1px solid var(--line); padding: var(--s200) 0; }
+summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; font-size: 20px; color: #10b981; font-weight: 500; transition: transform 250ms var(--curve); }
+details[open] summary::after { transform: rotate(45deg); }
+details p { margin-top: var(--s75); color: var(--muted); }
+
+footer { padding: var(--s600) var(--s200); text-align: center; border-top: 1px solid var(--line); }
+
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 700ms var(--curve), transform 700ms var(--curve); }
+.reveal.in { opacity: 1; transform: none; }
+
+@media (max-width: 760px) {
+  .heading-1 { font-size: 36px; line-height: 1.18; }
+  .heading-3 { font-size: 28px; }
+  .grid { grid-template-columns: 1fr; }
+  .filters { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .row { grid-template-columns: 104px 1fr 48px; }
+  .card { padding: var(--s200); }
+  nav { width: calc(100% - 20px); border-radius: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transform: none; }
+  .fill { transition: none; }
+  .tagline .w { opacity: 1; transition: none; }
+}
+</style>
+</head>
+<body>
+<a class="skip button-md" href="#main" data-i18n="skip">Skip to content</a>
+
+<nav aria-label="Primary" class="body-6">
+  <div class="nav-links">
+    <a href="#top" aria-current="true" data-i18n="navHome">Home</a>
+    <a href="#check" data-i18n="navCheck">Check</a>
+    <a href="#models" data-i18n="navModels">Models</a>
+    <a href="#data" data-i18n="navData">Data</a>
+    <a href="#faq" data-i18n="navFaq">FAQ</a>
+  </div>
+  <div class="nav-controls">
+    <button type="button" class="pill-btn" id="langToggle" aria-label="Switch language">বাংলা</button>
+    <button type="button" class="pill-btn icon-btn" id="themeToggle" aria-label="Toggle color theme" title="Toggle Light/Dark Mode">
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      <svg id="iconMoon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="badge"><span class="badge-dot"></span><span data-i18n="badge">Bangladesh Health Screening Aid</span></div>
+    <h1 class="heading-1" data-i18n="heroTitle">Check your diabetes risk from a few health measurements</h1>
+    <p class="lead body-3" data-i18n="heroLead">Enter your age and glucose, add anything else you know, and get a risk score with the measurements that pushed it up. It also tells you when a screening test is worth booking.</p>
+    <div><a class="btn button-md" href="#check" data-i18n="heroCta">Check my risk</a></div>
+    <p class="proof caption-4 muted" id="proofText" data-rows="{{ rows }}" data-districts="{{ districts }}">Trained on {{ rows }} synthetic records from {{ districts }} districts. Nothing you enter is stored.</p>
+  </section>
+
+  <section class="tagline" aria-label="Purpose">
+    <p class="heading-3" id="tag" data-i18n="tagline">A screening aid, not a diagnosis. It helps you decide when a glucose test at a clinic is worth your time.</p>
+  </section>
+
+  <section id="check" class="reveal">
+    <div class="wrap">
+      <h2 class="heading-3" data-i18n="checkTitle">Check your risk</h2>
+      <p class="body-3 muted" data-i18n="checkSub">Age and glucose are required. Blank fields are filled with the training median, and the result lists which ones.</p>
+      <div class="grid">
+        <form class="card" id="form" novalidate>
+          <div class="fields">
+            <label>
+              <span class="title-4" data-i18n="lblGender">Gender</span>
+              <select name="Gender">
+                <option value="Female" data-i18n="optFemale">Female</option>
+                <option value="Male" data-i18n="optMale">Male</option>
+              </select>
+            </label>
+            <label><span class="title-4" data-i18n="lblAge">Age in years *</span><input name="Age" type="number" step="1" placeholder="e.g. 42" required></label>
+            <label><span class="title-4" data-i18n="lblGlucose">Glucose in mg/dL *</span><input name="Glucose" type="number" step="1" placeholder="e.g. 118" required></label>
+            <label><span class="title-4" data-i18n="lblBP">Blood pressure in mmHg</span><input name="BloodPressure" type="number" step="1" placeholder="e.g. 76"></label>
+            <label><span class="title-4" data-i18n="lblBMI">BMI</span><input name="BMI" type="number" step="0.1" placeholder="e.g. 24.8"></label>
+            <label><span class="title-4" data-i18n="lblInsulin">Insulin in mu U/mL</span><input name="Insulin" type="number" step="1" placeholder="e.g. 85"></label>
+            <label><span class="title-4" data-i18n="lblSkin">Skin thickness in mm</span><input name="SkinThickness" type="number" step="1" placeholder="e.g. 22"></label>
+            <label><span class="title-4" data-i18n="lblPedigree">Pedigree function</span><input name="DiabetesPedigreeFunction" type="number" step="0.01" placeholder="e.g. 0.45"></label>
+          </div>
+          <div class="form-actions"><button class="btn button-md" type="submit" data-i18n="btnCalc">Calculate my risk</button></div>
+          <p class="err body-6" id="formError" role="alert" hidden></p>
+        </form>
+        <div class="card" id="result" aria-live="polite">
+          <p class="title-3" data-i18n="resPlaceholderTitle">Your result will appear here</p>
+          <p class="body-6 muted" style="margin-top:6px" data-i18n="resPlaceholderBody">You will see a score from 0 to 100, a category, and the five measurements that moved it most.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="models" class="reveal">
+    <div class="wrap">
+      <h2 class="heading-3" data-i18n="modelsTitle">How the models perform</h2>
+      <p class="body-3 muted" id="modelNote" data-i18n="modelsLoading">Loading evaluation results.</p>
+      <div class="card" style="margin-top:var(--s300)"><table id="modelTable" class="body-6"></table></div>
+      <div class="grid">
+        <div class="card"><p class="title-3" data-i18n="missingTitle">Missing values by feature</p><div id="missing"></div></div>
+        <div class="card"><p class="title-3" data-i18n="importanceTitle">Feature importance, Random Forest</p><div id="importance"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="data" class="reveal">
+    <div class="wrap">
+      <h2 class="heading-3" data-i18n="dataTitle">Explore the dataset</h2>
+      <p class="body-3 muted" data-i18n="dataSub">Each row is one simulated patient for a district and month. These counts describe the synthetic data, not real diabetes prevalence in any district.</p>
+      <div class="card" style="margin-top:var(--s300)">
+        <div class="filters">
+          <label><span class="title-4" data-i18n="filterDistrict">District</span><select id="fDistrict"><option value="" data-i18n="optAllDistricts">All districts</option></select></label>
+          <label><span class="title-4" data-i18n="filterYear">Year</span><select id="fYear"><option value="" data-i18n="optAllYears">All years</option></select></label>
+          <label><span class="title-4" data-i18n="filterMonth">Month</span><select id="fMonth"><option value="" data-i18n="optAllMonths">All months</option></select></label>
+        </div>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="grid">
+        <div class="card"><p class="title-3" data-i18n="byYearTitle">Positive cases by year</p><div id="byYear"></div></div>
+        <div class="card"><p class="title-3" data-i18n="byMonthTitle">Positive cases by month</p><div id="byMonth"></div></div>
+      </div>
+      <div class="card" style="margin-top:var(--s300)"><p class="title-3" data-i18n="byDistrictTitle">Districts with most positive cases</p><div id="byDistrict"></div></div>
+    </div>
+  </section>
+
+  <section id="faq" class="reveal">
+    <div class="wrap">
+      <h2 class="heading-3" data-i18n="faqTitle">Questions people ask</h2>
+      <details><summary class="title-3" data-i18n="faq1Q">Is this a diagnosis?</summary><p class="body-6" data-i18n="faq1A">No. It estimates risk from a few measurements. Only a blood test ordered by a clinician can diagnose diabetes.</p></details>
+      <details><summary class="title-3" data-i18n="faq2Q">Why is the score not a true probability?</summary><p class="body-6" data-i18n="faq2A">The models were trained with class weights because only 3.76 percent of records are positive. That raises scores for everyone, so read the score as a ranking signal.</p></details>
+      <details><summary class="title-3" data-i18n="faq3Q">Does my district or month change the result?</summary><p class="body-6" data-i18n="faq3A">No. District, year, and month are excluded from the model so that only clinical measurements drive the score.</p></details>
+      <details><summary class="title-3" data-i18n="faq4Q">What happens to fields I leave blank?</summary><p class="body-6" data-i18n="faq4A">They are filled with the median from the training data. The result names each filled field so you know where the estimate is softer.</p></details>
+      <details><summary class="title-3" data-i18n="faq5Q">Can I trust the accuracy numbers?</summary><p class="body-6" data-i18n="faq5A">Treat them with care. The dataset is synthetic and the signal is weak, so the best ROC AUC is well below what a real clinical tool needs. The table above shows every figure.</p></details>
+      <details><summary class="title-3" data-i18n="faq6Q">Is my data saved?</summary><p class="body-6" data-i18n="faq6A">No. Each request is scored in memory and discarded.</p></details>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap" style="text-align:center">
+      <h2 class="heading-3" data-i18n="ctaEndTitle">Know where you stand</h2>
+      <p class="body-3 muted" style="margin-bottom:var(--s300)" data-i18n="ctaEndSub">Two required fields. No account.</p>
+      <a class="btn button-md" href="#check" data-i18n="heroCta">Check my risk</a>
+    </div>
+  </section>
+</main>
+
+<footer class="caption-4 muted" data-i18n="footer">This tool is a screening aid built on synthetic data. It does not replace medical advice.</footer>
+
+<script>
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let currentLang = localStorage.getItem("lang") || "en";
+let cachedMetrics = null;
+let cachedResult = null;
+let cachedExplore = null;
+
+const I18N = {
+  en: {
+    skip: "Skip to content",
+    navHome: "Home", navCheck: "Check", navModels: "Models", navData: "Data", navFaq: "FAQ",
+    badge: "Bangladesh Health Screening Aid",
+    heroTitle: "Check your diabetes risk from a few health measurements",
+    heroLead: "Enter your age and glucose, add anything else you know, and get a risk score with the measurements that pushed it up. It also tells you when a screening test is worth booking.",
+    heroCta: "Check my risk",
+    proof: (r, d) => `Trained on ${r} synthetic records from ${d} districts. Nothing you enter is stored.`,
+    tagline: "A screening aid, not a diagnosis. It helps you decide when a glucose test at a clinic is worth your time.",
+    checkTitle: "Check your risk",
+    checkSub: "Age and glucose are required. Blank fields are filled with the training median, and the result lists which ones.",
+    lblGender: "Gender", optFemale: "Female", optMale: "Male",
+    lblAge: "Age in years *", lblGlucose: "Glucose in mg/dL *",
+    lblBP: "Blood pressure in mmHg", lblBMI: "BMI",
+    lblInsulin: "Insulin in mu U/mL", lblSkin: "Skin thickness in mm",
+    lblPedigree: "Pedigree function", btnCalc: "Calculate my risk",
+    errRequired: "Age and glucose are required. Enter both and try again.",
+    errServer: "The server could not be reached. Check that it is running and try again.",
+    errFix: "Fix the highlighted problem and calculate again.",
+    resPlaceholderTitle: "Your result will appear here",
+    resPlaceholderBody: "You will see a score from 0 to 100, a category, and the five measurements that moved it most.",
+    resScoreTitle: (cat, score) => `${cat} risk, score ${score}`,
+    catLower: "Lower", catHigher: "Higher", catModerate: "Moderate",
+    adviceLower: "Your measurements point to a lower risk. Keep up routine checkups.",
+    adviceHigher: "Ask a clinic about a fasting glucose or HbA1c test. This score is not a diagnosis.",
+    movedMost: "What moved the score most",
+    filledMedian: (list) => `Filled with the training median: ${list}.`,
+    modelsTitle: "How the models perform",
+    modelsLoading: "Loading evaluation results.",
+    modelNote: (posPct, rows, imp, test) => `Positive cases are ${posPct} percent of ${rows} records, so accuracy alone misleads. Models use class weights and a stratified split, and the ${imp} imputer won the cross validation on the training set only. Evaluated on ${test} held out records.`,
+    thModel: "Model", thAcc: "Accuracy", thPrec: "Precision", thRec: "Recall", thF1: "F1", thAuc: "ROC AUC", thConf: "TN / FP / FN / TP",
+    inUse: " (in use)",
+    missingTitle: "Missing values by feature",
+    importanceTitle: "Feature importance, Random Forest",
+    dataTitle: "Explore the dataset",
+    dataSub: "Each row is one simulated patient for a district and month. These counts describe the synthetic data, not real diabetes prevalence in any district.",
+    filterDistrict: "District", filterYear: "Year", filterMonth: "Month",
+    optAllDistricts: "All districts", optAllYears: "All years", optAllMonths: "All months",
+    statRecords: "Records", statPositives: "Positive cases", statMeanGluc: "Mean glucose", statMeanBMI: "Mean BMI",
+    none: "None",
+    noFilterMatch: "No records match these filters. Choose a different district, year, or month.",
+    ofTotal: (p, r) => `${p} of ${r}`,
+    byYearTitle: "Positive cases by year",
+    byMonthTitle: "Positive cases by month",
+    byDistrictTitle: "Districts with most positive cases",
+    faqTitle: "Questions people ask",
+    faq1Q: "Is this a diagnosis?",
+    faq1A: "No. It estimates risk from a few measurements. Only a blood test ordered by a clinician can diagnose diabetes.",
+    faq2Q: "Why is the score not a true probability?",
+    faq2A: "The models were trained with class weights because only 3.76 percent of records are positive. That raises scores for everyone, so read the score as a ranking signal.",
+    faq3Q: "Does my district or month change the result?",
+    faq3A: "No. District, year, and month are excluded from the model so that only clinical measurements drive the score.",
+    faq4Q: "What happens to fields I leave blank?",
+    faq4A: "They are filled with the median from the training data. The result names each filled field so you know where the estimate is softer.",
+    faq5Q: "Can I trust the accuracy numbers?",
+    faq5A: "Treat them with care. The dataset is synthetic and the signal is weak, so the best ROC AUC is well below what a real clinical tool needs. The table above shows every figure.",
+    faq6Q: "Is my data saved?",
+    faq6A: "No. Each request is scored in memory and discarded.",
+    ctaEndTitle: "Know where you stand",
+    ctaEndSub: "Two required fields. No account.",
+    footer: "This tool is a screening aid built on synthetic data. It does not replace medical advice.",
+    features: {
+      Female: "Gender (female)", Age: "Age", Glucose: "Glucose",
+      BloodPressure: "Blood pressure", SkinThickness: "Skin thickness",
+      Insulin: "Insulin", BMI: "BMI", DiabetesPedigreeFunction: "Pedigree function"
+    }
+  },
+  bn: {
+    skip: "মূল বিষয়বস্তুতে যান",
+    navHome: "হোম", navCheck: "পরীক্ষা", navModels: "মডেল", navData: "তথ্য", navFaq: "প্রশ্নোত্তর",
+    badge: "বাংলাদেশ স্বাস্থ্য স্ক্রিনিং সহায়ক",
+    heroTitle: "কয়েকটি স্বাস্থ্য পরিমাপ থেকে আপনার ডায়াবেটিসের ঝুঁকি যাচাই করুন",
+    heroLead: "আপনার বয়স ও গ্লুকোজের মাত্রা দিন, জানা থাকলে অন্যান্য তথ্যও যোগ করুন এবং ঝুঁকির স্কোরসহ কোন পরিমাপগুলো ঝুঁকি বাড়িয়েছে তা জানুন। কখন ক্লিনিকে পরীক্ষা করানো উচিত তাও এটি নির্দেশ করে।",
+    heroCta: "ঝুঁকি যাচাই করুন",
+    proof: (r, d) => `${d}টি জেলার ${r}টি সিন্থেটিক রেকর্ডের ওপর প্রশিক্ষিত। আপনার কোনো তথ্য সংরক্ষণ করা হয় না।`,
+    tagline: "এটি একটি প্রাথমিক স্ক্রিনিং সহায়ক, রোগ নির্ণয় নয়। ক্লিনিকে গ্লুকোজ পরীক্ষা করানো প্রয়োজন কি না তা সিদ্ধান্ত নিতে এটি সাহায্য করে।",
+    checkTitle: "আপনার ঝুঁকি যাচাই করুন",
+    checkSub: "বয়স এবং গ্লুকোজ দেওয়া বাধ্যতামূলক। খালি ঘরগুলো ট্রেনিং ডেটার গড় (মিডিয়ান) মান দিয়ে পূরণ করা হয় এবং ফলাফলে তা উল্লেখ থাকে।",
+    lblGender: "লিঙ্গ", optFemale: "নারী", optMale: "পুরুষ",
+    lblAge: "বয়স (বছর) *", lblGlucose: "গ্লুকোজ (mg/dL) *",
+    lblBP: "রক্তচাপ (mmHg)", lblBMI: "বিএমআই (BMI)",
+    lblInsulin: "ইনসুলিন (mu U/mL)", lblSkin: "ত্বকের পুরুত্ব (mm)",
+    lblPedigree: "বংশগত ঝুঁকি সূচক (Pedigree)", btnCalc: "ঝুঁকি হিসাব করুন",
+    errRequired: "বয়স এবং গ্লুকোজ দেওয়া বাধ্যতামূলক। উভয় তথ্য দিয়ে আবার চেষ্টা করুন।",
+    errServer: "সার্ভারের সাথে সংযোগ করা যাচ্ছে না। সার্ভার চালু আছে কি না তা দেখে আবার চেষ্টা করুন।",
+    errFix: "চিহ্নিত সমস্যাটি ঠিক করে আবার হিসাব করুন।",
+    resPlaceholderTitle: "আপনার ফলাফল এখানে দেখা যাবে",
+    resPlaceholderBody: "এখানে ০ থেকে ১০০-এর মধ্যে একটি স্কোর, ঝুঁকির ধরন এবং স্কোরকে সবচেয়ে বেশি প্রভাবিত করা পাঁচটি পরিমাপ দেখতে পাবেন।",
+    resScoreTitle: (cat, score) => `${cat} ঝুঁকি, স্কোর ${score}`,
+    catLower: "কম", catHigher: "উচ্চ", catModerate: "মাঝারি",
+    adviceLower: "আপনার পরিমাপগুলো তুলনামূলক কম ঝুঁকি নির্দেশ করছে। নিয়মিত স্বাস্থ্য পরীক্ষা চালিয়ে যান।",
+    adviceHigher: "ফাস্টিং গ্লুকোজ বা HbA1c পরীক্ষার জন্য নিকটস্থ ক্লিনিকে পরামর্শ নিন। এই স্কোর কোনো চূড়ান্ত রোগ নির্ণয় নয়।",
+    movedMost: "যে পরিমাপগুলো স্কোরকে সবচেয়ে বেশি প্রভাবিত করেছে",
+    filledMedian: (list) => `ট্রেনিং মিডিয়ান দিয়ে পূরণ করা হয়েছে: ${list}।`,
+    modelsTitle: "মডেলগুলোর কার্যকারিতা",
+    modelsLoading: "মূল্যায়নের ফলাফল লোড হচ্ছে...",
+    modelNote: (posPct, rows, imp, test) => `মোট ${rows}টি রেকর্ডের মধ্যে পজিটিভ কেস মাত্র ${posPct} শতাংশ, তাই শুধু অ্যাকুরেসি বিভ্রান্তিকর হতে পারে। মডেলগুলোতে ক্লাস ওয়েট ব্যবহার করা হয়েছে এবং ${imp} ইম্পিউটার নির্বাচিত হয়েছে। ${test}টি আলাদা রেকর্ডে এটি যাচাইকৃত।`,
+    thModel: "মডেল", thAcc: "অ্যাকুরেসি", thPrec: "প্রিসিশন", thRec: "রিকল", thF1: "F1", thAuc: "ROC AUC", thConf: "TN / FP / FN / TP",
+    inUse: " (ব্যবহৃত)",
+    missingTitle: "বৈশিষ্ট্য অনুযায়ী অনুপস্থিত তথ্য",
+    importanceTitle: "বৈশিষ্ট্যের গুরুত্ব (Random Forest)",
+    dataTitle: "ডেটাসেট বিশ্লেষণ করুন",
+    dataSub: "প্রতিটি সারি একটি জেলা ও মাসের সিমুলেটেড রোগীর তথ্য। এই সংখ্যাগুলো সিন্থেটিক ডেটা নির্দেশ করে, কোনো জেলার প্রকৃত ডায়াবেটিস হার নয়।",
+    filterDistrict: "জেলা", filterYear: "বছর", filterMonth: "মাস",
+    optAllDistricts: "সকল জেলা", optAllYears: "সকল বছর", optAllMonths: "সকল মাস",
+    statRecords: "মোট রেকর্ড", statPositives: "পজিটিভ কেস", statMeanGluc: "গড় গ্লুকোজ", statMeanBMI: "গড় BMI",
+    none: "নেই",
+    noFilterMatch: "এই ফিল্টারের সাথে কোনো রেকর্ড মেলেনি। অন্য জেলা, বছর বা মাস নির্বাচন করুন।",
+    ofTotal: (p, r) => `${r}-এর মধ্যে ${p}`,
+    byYearTitle: "বছর অনুযায়ী পজিটিভ কেস",
+    byMonthTitle: "মাস অনুযায়ী পজিটিভ কেস",
+    byDistrictTitle: "সর্বাধিক পজিটিভ কেসযুক্ত জেলাসমূহ",
+    faqTitle: "সাধারণ জিজ্ঞাসাসমূহ",
+    faq1Q: "এটি কি কোনো রোগ নির্ণয়?",
+    faq1A: "না। এটি কয়েকটি পরিমাপ থেকে ঝুঁকির ধারণা দেয়। কেবল চিকিৎসকের পরামর্শ অনুযায়ী রক্ত পরীক্ষার মাধ্যমেই ডায়াবেটিস নির্ণয় করা সম্ভব।",
+    faq2Q: "স্কোরটি কেন প্রকৃত সম্ভাবনা (Probability) নয়?",
+    faq2A: "মোট রেকর্ডের মাত্র ৩.৭৬ শতাংশ পজিটিভ হওয়ায় মডেলগুলোতে ক্লাস ওয়েট ব্যবহার করা হয়েছে। এতে সবার স্কোর কিছুটা বেড়ে যায়, তাই এটিকে একটি তুলনামূলক সংকেত হিসেবে দেখুন।",
+    faq3Q: "আমার জেলা বা মাস কি ফলাফলে পরিবর্তন আনে?",
+    faq3A: "না। মডেল থেকে জেলা, বছর এবং মাস বাদ দেওয়া হয়েছে যাতে কেবল শারীরিক পরিমাপগুলোই স্কোর নির্ধারণ করে।",
+    faq4Q: "খালি রাখা ঘরগুলোর ক্ষেত্রে কী হয়?",
+    faq4A: "সেগুলো ট্রেনিং ডেটার গড় (মিডিয়ান) মান দিয়ে পূরণ করা হয়। ফলাফলে সেই ঘরগুলোর নাম উল্লেখ থাকে যাতে আপনি বুঝতে পারেন কোথায় অনুমান করা হয়েছে।",
+    faq5Q: "আমি কি অ্যাকুরেসি সংখ্যার ওপর পুরোপুরি ভরসা করতে পারি?",
+    faq5A: "সতর্কতার সাথে বিবেচনা করুন। এই ডেটাসেটটি সিন্থেটিক এবং সংকেত দুর্বল, তাই এর ROC AUC প্রকৃত ক্লিনিক্যাল টুলের তুলনায় কম। উপরের সারণিতে সব তথ্য দেওয়া আছে।",
+    faq6Q: "আমার তথ্য কি সংরক্ষণ করা হয়?",
+    faq6A: "না। প্রতিটি অনুরোধ মেমোরিতে হিসাব করে সাথে সাথেই মুছে ফেলা হয়।",
+    ctaEndTitle: "আপনার অবস্থান জানুন",
+    ctaEndSub: "মাত্র দুটি বাধ্যতামূলক তথ্য। কোনো অ্যাকাউন্টের প্রয়োজন নেই।",
+    footer: "এই টুলটি সিন্থেটিক ডেটার ওপর নির্মিত একটি প্রাথমিক স্ক্রিনিং সহায়ক। এটি চিকিৎসকের পরামর্শের বিকল্প নয়।",
+    features: {
+      Female: "লিঙ্গ (নারী)", Age: "বয়স", Glucose: "গ্লুকোজ",
+      BloodPressure: "রক্তচাপ", SkinThickness: "ত্বকের পুরুত্ব",
+      Insulin: "ইনসুলিন", BMI: "বিএমআই (BMI)", DiabetesPedigreeFunction: "বংশগত সূচক"
+    }
+  }
+};
+
+function t(key) {
+  return I18N[currentLang][key] || I18N.en[key] || key;
+}
+
+function label(name) {
+  return I18N[currentLang].features[name] || I18N.en.features[name] || name;
+}
+
+/* Theme Toggle Logic */
+const themeToggle = document.getElementById("themeToggle");
+const iconSun = document.getElementById("iconSun");
+const iconMoon = document.getElementById("iconMoon");
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+  if (theme === "dark") {
+    iconSun.hidden = false;
+    iconMoon.hidden = true;
+  } else {
+    iconSun.hidden = true;
+    iconMoon.hidden = false;
+  }
+}
+const savedTheme = localStorage.getItem("theme") ||
+  (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+applyTheme(savedTheme);
+
+themeToggle.addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  applyTheme(next);
+});
+
+/* Language Toggle Logic */
+const langToggle = document.getElementById("langToggle");
+
+function renderTagline() {
+  const tag = document.getElementById("tag");
+  const text = t("tagline");
+  const words = text.trim().split(" ");
+  tag.replaceChildren();
+  const spans = [];
+  words.forEach((word, index) => {
+    const span = document.createElement("span");
+    span.className = "w";
+    span.textContent = word;
+    tag.appendChild(span);
+    if (index < words.length - 1) tag.appendChild(document.createTextNode(" "));
+    spans.push(span);
+  });
+  const wordObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
+        entry.target.classList.add("on");
+      } else {
+        entry.target.classList.remove("on");
+      }
+    });
+  }, { rootMargin: "0px 0px -35% 0px" });
+
+  spans.forEach((span, index) => {
+    span.style.transitionDelay = Math.min(index * 30, 400) + "ms";
+    if (reduced) span.classList.add("on");
+    else wordObserver.observe(span);
+  });
+}
+
+function applyLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem("lang", lang);
+  document.documentElement.lang = lang;
+  langToggle.textContent = lang === "en" ? "বাংলা" : "English";
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (typeof I18N[lang][key] === "string") {
+      el.textContent = I18N[lang][key];
+    }
+  });
+
+  const proofEl = document.getElementById("proofText");
+  proofEl.textContent = t("proof")(proofEl.dataset.rows, proofEl.dataset.districts);
+
+  renderTagline();
+  if (cachedMetrics) renderMetrics(cachedMetrics);
+  if (cachedResult) showResult(cachedResult);
+  if (cachedExplore) renderExplore(cachedExplore);
+}
+
+langToggle.addEventListener("click", () => {
+  applyLanguage(currentLang === "en" ? "bn" : "en");
+});
+
+/* UI Helpers */
+function barRow(text, fraction, valueText, isHighRisk = false) {
+  const row = document.createElement("div");
+  row.className = "row body-6";
+  const name = document.createElement("span");
+  name.textContent = text;
+  const track = document.createElement("div");
+  track.className = "track";
+  const fill = document.createElement("div");
+  fill.className = "fill" + (isHighRisk ? " high-risk" : "");
+  fill.style.transform = "scaleX(0)";
+  track.appendChild(fill);
+  const value = document.createElement("span");
+  value.className = "mono caption-4";
+  value.textContent = valueText;
+  row.append(name, track, value);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      fill.style.transform = "scaleX(" + Math.max(0, Math.min(1, fraction)) + ")";
+    });
+  });
+  return row;
+}
+
+function fillBars(id, items) {
+  const box = document.getElementById(id);
+  box.replaceChildren();
+  if (items.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "body-6 muted";
+    empty.textContent = t("noFilterMatch");
+    box.appendChild(empty);
+    return;
+  }
+  let top = 0;
+  items.forEach((item) => { if (item.value > top) top = item.value; });
+  items.forEach((item) => {
+    const fraction = top > 0 ? item.value / top : 0;
+    box.appendChild(barRow(item.label, fraction, item.text));
+  });
+}
+
+function renderMetrics(m) {
+  const balance = m.class_balance;
+  document.getElementById("modelNote").textContent = t("modelNote")(
+    balance.positive_percent, m.rows, m.chosen_imputer, m.test_size
+  );
+  const table = document.getElementById("modelTable");
+  const head = `<tr><th>${t("thModel")}</th><th>${t("thAcc")}</th><th>${t("thPrec")}</th><th>${t("thRec")}</th><th>${t("thF1")}</th><th>${t("thAuc")}</th><th>${t("thConf")}</th></tr>`;
+  let body = "";
+  Object.keys(m.models).forEach((name) => {
+    const r = m.models[name];
+    const mark = name === m.best_model ? t("inUse") : "";
+    body += `<tr><td>${name}${mark}</td><td>${r.accuracy}</td><td>${r.precision}</td><td>${r.recall}</td><td>${r.f1}</td><td>${r.roc_auc}</td><td class="mono">${r.confusion[0][0]} / ${r.confusion[0][1]} / ${r.confusion[1][0]} / ${r.confusion[1][1]}</td></tr>`;
+  });
+  table.innerHTML = head + body;
+
+  fillBars("missing", m.missing.map((item) => ({
+    label: label(item.feature), value: item.percent, text: item.percent + "%"
+  })));
+  fillBars("importance", m.importance.map((item) => ({
+    label: label(item.feature), value: item.value, text: item.value.toFixed(2)
+  })));
+}
+
+fetch("/api/metrics")
+  .then((response) => response.json())
+  .then((m) => {
+    cachedMetrics = m;
+    renderMetrics(m);
+  });
+
+document.getElementById("form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const errorBox = document.getElementById("formError");
+  const result = document.getElementById("result");
+  errorBox.hidden = true;
+  const payload = {};
+  new FormData(event.target).forEach((value, key) => { payload[key] = value; });
+
+  if (payload.Age === "" || payload.Glucose === "") {
+    errorBox.textContent = t("errRequired");
+    errorBox.hidden = false;
+    return;
+  }
+  result.innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+  fetch("/api/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+    .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+    .then((out) => {
+      if (!out.ok) {
+        result.innerHTML = `<p class="title-3">${t("resPlaceholderTitle")}</p><p class="body-6 muted">${t("errFix")}</p>`;
+        errorBox.textContent = out.data.error;
+        errorBox.hidden = false;
+        return;
+      }
+      cachedResult = out.data;
+      showResult(out.data);
+    })
+    .catch(() => {
+      result.innerHTML = `<p class="title-3">${t("resPlaceholderTitle")}</p>`;
+      errorBox.textContent = t("errServer");
+      errorBox.hidden = false;
+    });
+});
+
+function showResult(data) {
+  const result = document.getElementById("result");
+  result.replaceChildren();
+
+  const isLower = data.category === "Lower";
+  const localizedCat = isLower ? t("catLower") : (data.category === "Moderate" ? t("catModerate") : t("catHigher"));
+  const scorePct = Math.round(data.score * 100);
+
+  const title = document.createElement("p");
+  title.className = "heading-5";
+  title.textContent = t("resScoreTitle")(localizedCat, scorePct);
+
+  const track = document.createElement("div");
+  track.className = "track";
+  track.setAttribute("role", "img");
+  track.setAttribute("aria-label", `Risk score ${scorePct} out of 100`);
+  track.style.margin = "14px 0";
+
+  const fill = document.createElement("div");
+  fill.className = "fill" + (!isLower ? " high-risk" : "");
+  fill.style.transform = "scaleX(0)";
+  track.appendChild(fill);
+
+  const advice = document.createElement("p");
+  advice.className = "body-6 muted";
+  advice.textContent = isLower ? t("adviceLower") : t("adviceHigher");
+
+  const sub = document.createElement("p");
+  sub.className = "title-4";
+  sub.style.marginTop = "18px";
+  sub.textContent = t("movedMost");
+
+  result.append(title, track, advice, sub);
+
+  let largest = 0.0001;
+  data.contributions.forEach((item) => {
+    if (Math.abs(item.effect) > largest) largest = Math.abs(item.effect);
+  });
+  data.contributions.forEach((item) => {
+    const sign = item.effect < 0 ? "" : "+";
+    result.appendChild(barRow(label(item.feature), Math.abs(item.effect) / largest, sign + Math.round(item.effect * 100), item.effect > 0));
+  });
+
+  if (data.filled_with_median.length > 0) {
+    const note = document.createElement("p");
+    note.className = "caption-4 muted";
+    note.style.marginTop = "14px";
+    note.textContent = t("filledMedian")(data.filled_with_median.map(label).join(", "));
+    result.appendChild(note);
+  }
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      fill.style.transform = "scaleX(" + data.score + ")";
+    });
+  });
+}
+
+let optionsReady = false;
+function renderExplore(d) {
+  const stats = document.getElementById("stats");
+  const cells = [
+    [t("statRecords"), d.records],
+    [t("statPositives"), d.positives],
+    [t("statMeanGluc"), d.means.Glucose],
+    [t("statMeanBMI"), d.means.BMI]
+  ];
+  stats.replaceChildren();
+  cells.forEach((cell) => {
+    const box = document.createElement("div");
+    box.className = "stat";
+    const shown = cell[1] === null ? t("none") : cell[1];
+    box.innerHTML = `<p class="caption-4 muted">${cell[0]}</p><p class="heading-5 mono">${shown}</p>`;
+    stats.appendChild(box);
+  });
+
+  const convert = (list) => list.map((item) => ({
+    label: item.label, value: item.positives, text: t("ofTotal")(item.positives, item.records)
+  }));
+  fillBars("byYear", convert(d.by_year));
+  fillBars("byMonth", convert(d.by_month));
+  fillBars("byDistrict", convert(d.by_district));
+}
+
+function loadExplore() {
+  const query = new URLSearchParams({
+    district: document.getElementById("fDistrict").value,
+    year: document.getElementById("fYear").value,
+    month: document.getElementById("fMonth").value
+  });
+  fetch("/api/explore?" + query.toString())
+    .then((response) => response.json())
+    .then((d) => {
+      if (!optionsReady) {
+        optionsReady = true;
+        d.districts.forEach((name) => document.getElementById("fDistrict").add(new Option(name, name)));
+        d.years.forEach((name) => document.getElementById("fYear").add(new Option(name, name)));
+        d.months.forEach((name) => document.getElementById("fMonth").add(new Option(name, name)));
+      }
+      cachedExplore = d;
+      renderExplore(d);
+    });
+}
+["fDistrict", "fYear", "fMonth"].forEach((id) => {
+  document.getElementById(id).addEventListener("change", loadExplore);
+});
+loadExplore();
+
+/* Initialize Language & Observers */
+applyLanguage(currentLang);
+
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add("in");
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll(".reveal").forEach((node) => revealObserver.observe(node));
+
+const links = document.querySelectorAll("nav a");
+const spy = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      links.forEach((link) => {
+        if (link.getAttribute("href") === "#" + entry.target.id) {
+          link.setAttribute("aria-current", "true");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+  });
+}, { rootMargin: "-40% 0px -55% 0px" });
+["top", "check", "models", "data", "faq"].forEach((id) => spy.observe(document.getElementById(id)));
+</script>
+</body>
+</html>
